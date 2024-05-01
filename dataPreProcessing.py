@@ -1,13 +1,19 @@
+"""
+Alvin Chung
+ECE 4424
+This file contains a script to read in images from a data and pick images that are
+"well-exposed" according to certain parameters.
+"""
+
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-#Convert Images to grayscale
 
-numImages = 2792
+numImages = 15620
 
 importFileType = ".jpg"
-importSeqName = "image"
+importSeqName = "img"
 
 exportFileType = ".jpg"
 exportRejectSeqName = "reject_"
@@ -24,11 +30,13 @@ rejectThreshold = 0.45
 rejectThresholdDev = 0.05 #The max deviation allowed from the threshold
 
 #Defining the range of shadows, mids, and highlights
-midRangeBeginIndex = 85 #+ 20 
-highlightBeginIndex = 171 #+ 50
+midRangeBeginIndex = 85 - 25 
+highlightBeginIndex = 171 + 25
 
 acceptCount = 0
 rejectCount = 0
+
+brokenFiles = list()
 
 for imageNum in range(1, numImages + 1):
 
@@ -38,10 +46,12 @@ for imageNum in range(1, numImages + 1):
     #Read in the image as a grayscale image
     currentImage = cv.imread(currentImagePath, cv.IMREAD_GRAYSCALE)
 
-    #Some images may be corrupt, so account for that will this try except
+    #Some images may be corrupt, so account for that with this try except
     try:
         totalPixels = currentImage.shape[0] * currentImage.shape[1] #Calculate the total number of pixels in the image
     except AttributeError:
+        print("Error with file: " + importSeqName + " (" + str(imageNum) + ")" + importFileType)
+        brokenFiles.append(imageNum)
         continue
 
     #Get the number of pixels at each intensity level
@@ -80,3 +90,4 @@ for imageNum in range(1, numImages + 1):
         print("Processed " + str(imageNum) + "/" + str(numImages) + " images")
 
 print("All Images Processed")
+print("Broken File Numbers: ", brokenFiles)

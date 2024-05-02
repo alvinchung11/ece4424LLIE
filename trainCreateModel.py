@@ -11,6 +11,7 @@ import sklearn
 import sklearn.linear_model
 import sklearn.multioutput
 import numpy as np
+import cv2 as cv
 
 truthValues = list()
 featureLists = list()
@@ -83,7 +84,7 @@ file.close()
 keys = list(dataDictionary.keys())
 splitIndex = math.floor(len(keys) / 2)
 trainKeys = keys[:splitIndex]
-testKeys = keys[splitIndex:]
+testKeys= keys[splitIndex:]
 
 #Get the features and truth values
 for key in trainKeys:
@@ -107,7 +108,7 @@ for key in trainKeys:
 
 
 #Stochastic Gradient Ascent Regressor
-sgdReg = sklearn.linear_model.SGDRegressor(max_iter=50, tol=0.1)
+sgdReg = sklearn.linear_model.SGDRegressor(max_iter=50, tol=0.05)
 
 #Multivariate
 multivarReg = sklearn.multioutput.MultiOutputRegressor(sgdReg)
@@ -124,6 +125,7 @@ alpha = getFeatures(x)
 y = multivarReg.predict([alpha])
 
 mseList = list()
+mseListNorm = list()
 
 print("EVALUATING TRAINING DATA")
 #Run through training data again
@@ -148,15 +150,25 @@ for key in trainKeys:
     
     prediction = multivarReg.predict([theseFeatures])
     
+    #Manually normalized version
+    predSum = np.sum(prediction)
+    predictionNorm = np.divide(prediction, predSum)
+
     thisMSE = getMSE(prediction, groundTruth)
+    thisMSENorm = getMSE(predictionNorm, groundTruth)
 
     mseList.append(thisMSE)
+    mseListNorm.append(thisMSENorm)
 
 avgMSE = sum(mseList) / len(mseList)
+avgMSENorm = sum(mseListNorm) / len(mseListNorm)
 
 print("Train Data Average Mean-Squared Error: ", avgMSE)
+print("Train Data Average Mean-Squared Error (Manually Normalized): ", avgMSENorm)
+
 
 mseList = list()
+mseListNorm = list()
 
 print()
 print("EVALUATING TESTING DATA")
@@ -181,10 +193,19 @@ for keys in testKeys:
 
     prediction = multivarReg.predict([theseFeatures])
 
+    #Manually normalized version
+    predSum = np.sum(prediction)
+    predictionNorm = np.divide(prediction, predSum)
+
     thisMSE = getMSE(prediction, groundTruth)
+    thisMSENorm = getMSE(predictionNorm, groundTruth)
 
     mseList.append(thisMSE)
+    mseListNorm.append(thisMSENorm)
 
 avgMSE = sum(mseList) / len(mseList)
+avgMSENorm = sum(mseListNorm) / len(mseListNorm)
 
 print("Test Data Average Mean-Squared Error: ", avgMSE)
+print("Test Data Average Mean-Squared Error (Manually Normalized): ", avgMSENorm)
+
